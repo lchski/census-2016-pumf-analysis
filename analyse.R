@@ -12,8 +12,6 @@ census_2016 %>%
   summarize(count = n(), min = min(EMPIN, na.rm = TRUE), max = max(EMPIN, na.rm = TRUE), mean = mean(EMPIN, na.rm = TRUE), median = median(EMPIN, na.rm = TRUE)) %>%
   select(BFNMEMB, SEX, count, min:median)
 
-
-
 replicate_weights <- paste0("WT",seq(1,16))
 
 all_weights <- c("WEIGHT",replicate_weights)
@@ -69,16 +67,34 @@ census_2016 %>% filter(
   PRIHM=="Person is primary maintainer",
   !(DTYPE=="Apartment" & CONDO=="No, not part of a condominium development"),
   SUBSIDY == "No, not a subsidized dwelling",
-)
+) %>%
+  mutate_at(.vars = all_weights,
+            .funs = list(~(.*SHELCO*12)))
 
 census_2016 %>%
-  select(Sex, AGEGRP, BFNMEMB, PR, EmpIn) %>%
-  replace_with_na(replace = list(EmpIn = c(99999999, 88888888))) %>%
-  left_join(sex_labels) %>%
-  left_join(BFNMEMB_labels) %>%
+  select(SEX, AGEGRP, BFNMEMB, PR, EMPIN) %>%
+  replace_with_na(replace = list(EMPIN = c(99999999, 88888888))) %>%
   ggplot() +
-    geom_histogram(mapping = aes(x = EmpIn, fill = Sex_label)) +
+    geom_histogram(mapping = aes(x = EMPIN, fill = SEX)) +
     xlim(c(0, 250000)) +
-    facet_grid(rows = vars(BFNMEMB_label), scales = "free")
+    facet_wrap(facets = vars(BFNMEMB), scales = "free", strip.position = "right")
+
+replace_labeled_values_with_na <- function(data) {
+  data %>%
+    replace_with_na(replace = list(
+      EMPIN = c(99999999, 88888888),
+      KOL = c("Not available")
+    ))
+}
+
+histogram_groups <- function(data, ...) {
+  data %>%
+    select(SEX, EMPIN, ...) %>%
+    replace_labeled_values_with_na %>%
+    ggplot() +
+    geom_histogram(mapping = aes(x = EMPIN, fill = SEX)) +
+    xlim(c(0, 150000)) +
+    facet_wrap(facets = vars(...), scales = "free", strip.position = "right")
+}
 
 
