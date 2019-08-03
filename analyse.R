@@ -1,28 +1,16 @@
 library(tidyverse)
 library(naniar)
 
-census_2016 <- read_csv("data/pumf-98M0001-E-2016-individuals/pumf-98M0001-E-2016-individuals_F1.csv") %>%
+census_2016 <- foreign::read.spss("data/pumf-98M0001-E-2016-individuals-spss/pumf-98M0001-E-2016-individuals_F1.sav") %>%
+  as_tibble() %>%
   set_names(names(.) %>% toupper)
-
-sex_labels <- tibble::tribble(
-  ~SEX, ~SEX_label,
-  1, "Female",
-  2, "Male"
-)
-
-BFNMEMB_labels <- tibble::tribble(
-  ~BFNMEMB, ~BFNMEMB_label,
-  0, "No",
-  1, "Yes"
-)
 
 census_2016 %>%
   select(SEX, AGEGRP, BFNMEMB, PR, EMPIN) %>%
   replace_with_na(replace = list(EMPIN = c(99999999, 88888888))) %>%
   group_by(BFNMEMB, SEX) %>%
   summarize(count = n(), min = min(EMPIN, na.rm = TRUE), max = max(EMPIN, na.rm = TRUE), mean = mean(EMPIN, na.rm = TRUE), median = median(EMPIN, na.rm = TRUE)) %>%
-  left_join(sex_labels) %>%
-  select(BFNMEMB, SEX_label, count, min:median)
+  select(BFNMEMB, SEX, count, min:median)
 
 
 
