@@ -1,8 +1,7 @@
 library(tidyverse)
 library(naniar)
 
-census_2016 <- foreign::read.spss("data/pumf-98M0001-E-2016-individuals-spss/pumf-98M0001-E-2016-individuals_F1.sav") %>%
-  as_tibble() %>%
+census_2016 <- haven::read_sav("data/pumf-98M0001-E-2016-individuals-spss/pumf-98M0001-E-2016-individuals_F1.sav") %>%
   set_names(names(.) %>% toupper)
 
 census_2016 %>%
@@ -117,6 +116,9 @@ census_2016_w %>%
   group_by(is_immigrant) %>%
   summarize(count = sum(Value)) %>%
   mutate(prop = count / sum(count))
+
+census_2016_w %>%
+  filter(CMA == "Montr\xe9al")
 
 
 summary(lm(
