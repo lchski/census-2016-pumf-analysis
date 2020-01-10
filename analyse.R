@@ -93,6 +93,7 @@ replace_labeled_values_with_na <- function(data) {
   data %>%
     replace_with_na(replace = list(
       EMPIN = c(99999999, 88888888),
+      EMPIN = c(99999999, 88888888),
       KOL = c("Not available")
     ))
 }
@@ -107,6 +108,22 @@ histogram_groups <- function(data, ...) {
     facet_wrap(facets = vars(...), scales = "free", strip.position = "right")
 }
 
+
+## replicating http://sda.chass.utoronto.ca/sdaweb/dli2/cc16/cc16i/more_doc/UserGuide.pdf pg. 129, ex. 2
+## see also: https://github.com/mountainMath/doodles/blob/e2f7dd0f22ad9e02857a0df8198260d285e50b58/content/posts/2019-02-27-tax-speculations.Rmarkdown#L139-L166
+census_2016_w %>%
+  filter(CMA == "Montr\xe9al") %>%
+  mutate(is_immigrant = IMMSTAT == "Immigrants") %>%
+  group_by(is_immigrant) %>%
+  summarize(count = sum(Value)) %>%
+  mutate(prop = count / sum(count))
+
+
+summary(lm(
+  EMPIN ~ SEX * CMA,
+  data = census_2016_w %>% replace_labeled_values_with_na(),
+  weights = Value
+))
 
 census_2016_w %>% mutate(EMPIN = case_when(
   EMPIN == 99999999 ~ NA_real_,
