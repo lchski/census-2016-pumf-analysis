@@ -4,6 +4,14 @@ library(naniar)
 census_2016 <- haven::read_sav("data/pumf-98M0001-E-2016-individuals-spss/pumf-98M0001-E-2016-individuals_F1.sav") %>%
   set_names(names(.) %>% toupper)
 
+## for once I get into replicate weight stuff
+#census_2016_wg <- census_2016 %>%
+#  gather_weights()
+
+census_2016_w <- census_2016 %>%
+  select(-WT1:-WT16)
+
+
 census_2016 %>%
   select(SEX, AGEGRP, BFNMEMB, PR, EMPIN) %>%
   replace_with_na(replace = list(EMPIN = c(99999999, 88888888))) %>%
@@ -61,16 +69,6 @@ estimate_and_standard_error_share <- function(data,...){
     ) 
 }
 
-census_2016 %>%
-  gather_weights() %>%
-  filter(weight == "WEIGHT")
-
-census_2016_wg <- census_2016 %>%
-  gather_weights()
-
-census_2016_w <- census_2016_wg %>%
-  filter(weight == "WEIGHT")
-
 census_2016 %>% filter(
   TENUR=="Rented or Band housing",
   PRIHM=="Person is primary maintainer",
@@ -111,14 +109,11 @@ histogram_groups <- function(data, ...) {
 ## replicating http://sda.chass.utoronto.ca/sdaweb/dli2/cc16/cc16i/more_doc/UserGuide.pdf pg. 129, ex. 2
 ## see also: https://github.com/mountainMath/doodles/blob/e2f7dd0f22ad9e02857a0df8198260d285e50b58/content/posts/2019-02-27-tax-speculations.Rmarkdown#L139-L166
 census_2016_w %>%
-  filter(CMA == "Montr\xe9al") %>%
-  mutate(is_immigrant = IMMSTAT == "Immigrants") %>%
+  filter(as_factor(CMA) == "Montréal") %>% ## NB! can also do `filter(CMA == 462)`
+  mutate(is_immigrant = as_factor(IMMSTAT) == "Immigrants") %>% ## here, too, `IMMSTAT == 2`
   group_by(is_immigrant) %>%
-  summarize(count = sum(Value)) %>%
+  summarize(count = sum(WEIGHT)) %>%
   mutate(prop = count / sum(count))
-
-census_2016_w %>%
-  filter(CMA == "Montr\xe9al")
 
 
 summary(lm(
