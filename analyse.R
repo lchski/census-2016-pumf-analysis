@@ -62,3 +62,21 @@ summary(lm(
   weights = WEIGHT
 ))
 
+
+
+census_2016 %>%
+  filter(PR == 35) %>% ## ON
+  filter(CFSTAT == 6) %>% ## Lives alone
+  replace_labeled_values_with_na() %>%
+  filter(TOTINC <= 10000) %>% ## Total income less than 10,000
+  ggplot(aes(x = TOTINC, weight = WEIGHT)) +
+  geom_histogram()
+
+census_2016 %>%
+  filter(PR == 35) %>% ## Ontario
+  filter(CFSTAT == 6) %>% ## Lives alone
+  replace_labeled_values_with_na() %>%
+  filter(TOTINC <= 10000) %>% ## Total income less than 10,000
+  filter(TOTINC >= 0) %>% ## Total income more than 0 [WARNING: This may remove valid/relevant cases]
+  ggplot(aes(x = TOTINC, weight = WEIGHT)) +
+  geom_histogram()
