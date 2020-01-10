@@ -62,6 +62,16 @@ estimate_and_standard_error_share <- function(data,...){
     ) 
 }
 
+census_2016 %>%
+  gather_weights() %>%
+  filter(weight == "WEIGHT")
+
+census_2016_wg <- census_2016 %>%
+  gather_weights()
+
+census_2016_w <- census_2016_wg %>%
+  filter(weight == "WEIGHT")
+
 census_2016 %>% filter(
   TENUR=="Rented or Band housing",
   PRIHM=="Person is primary maintainer",
@@ -97,4 +107,14 @@ histogram_groups <- function(data, ...) {
     facet_wrap(facets = vars(...), scales = "free", strip.position = "right")
 }
 
+
+census_2016_w %>% mutate(EMPIN = case_when(
+  EMPIN == 99999999 ~ NA_real_,
+  EMPIN == 88888888 ~ NA_real_,
+  TRUE ~ EMPIN
+)) %>% summary(lm(EMPIN ~ SEX, data = ., weights = Value))
+
+
+census_2016_w %>%
+  replace_labeled_values_with_na()
 
