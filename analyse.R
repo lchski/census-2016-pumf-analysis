@@ -115,6 +115,15 @@ census_2016_w %>%
   summarize(count = sum(WEIGHT)) %>%
   mutate(prop = count / sum(count))
 
+## ex. 3
+census_2016_w %>%
+  filter(CMA == 933) %>%
+  filter(SEX == 2) %>%
+  filter(8 <= AGEGRP & AGEGRP <= 12) %>%
+  group_by(MARSTH) %>%
+  summarize(count = sum(WEIGHT)) %>%
+  mutate(prop = count / sum(count))
+
 
 summary(lm(
   EMPIN ~ SEX * CMA,
