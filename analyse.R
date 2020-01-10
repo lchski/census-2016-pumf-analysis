@@ -1,6 +1,9 @@
 library(tidyverse)
 library(naniar)
 
+library(helpers)
+source("lib/helpers.R")
+
 census_2016 <- haven::read_sav("data/pumf-98M0001-E-2016-individuals-spss/pumf-98M0001-E-2016-individuals_F1.sav") %>%
   set_names(names(.) %>% toupper)
 
@@ -90,7 +93,34 @@ replace_labeled_values_with_na <- function(data) {
   data %>%
     replace_with_na(replace = list(
       EMPIN = c(99999999, 88888888),
-      EMPIN = c(99999999, 88888888),
+      EICBN = c(99999999, 88888888),
+      GOVTI = c(99999999, 88888888),
+      GTRFS = c(99999999, 88888888),
+      INCTAX = c(99999999, 88888888),
+      INVST = c(99999999, 88888888),
+      CQPPB = c(99999999, 88888888),
+      MRKINC = c(99999999, 88888888),
+      OASGI = c(99999999, 88888888),
+      OTINC = c(99999999, 88888888),
+      RETIR = c(99999999, 88888888),
+      SEMPI = c(99999999, 88888888),
+      TOTINC = c(99999999, 88888888),
+      TOTINC_AT = c(99999999, 88888888),
+      WAGES = c(99999999, 88888888)
+    )) %>%
+    replace_with_na(replace = list(
+      KOL = c("Not available")
+    ))
+}
+
+## currently this is very slow: https://github.com/njtierney/naniar/issues/143
+replace_labeled_values_with_na_2 <- function(data) {
+  data %>%
+    replace_with_na_at(
+      .vars = c("EMPIN", "EICBN", "GOVTI", "GTRFS", "INCTAX", "INVST"),
+      condition = ~ .x %in% c(99999999, 88888888)
+    ) %>%
+    replace_with_na(replace = list(
       KOL = c("Not available")
     ))
 }
@@ -126,18 +156,8 @@ census_2016_w %>%
 
 
 summary(lm(
-  EMPIN ~ SEX * CMA,
-  data = census_2016_w %>% replace_labeled_values_with_na(),
-  weights = Value
+  OASGI ~ AGEGRP,
+  data = census_2016_w %>% replace_labeled_values_with_na() %>% mutate(AGEGRP = as_factor(AGEGRP)),
+  weights = WEIGHT
 ))
-
-census_2016_w %>% mutate(EMPIN = case_when(
-  EMPIN == 99999999 ~ NA_real_,
-  EMPIN == 88888888 ~ NA_real_,
-  TRUE ~ EMPIN
-)) %>% summary(lm(EMPIN ~ SEX, data = ., weights = Value))
-
-
-census_2016_w %>%
-  replace_labeled_values_with_na()
 
